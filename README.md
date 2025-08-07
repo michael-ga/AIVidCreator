@@ -26,7 +26,7 @@ Effects file name convention
 ### Example content directory structure
 - Add edited viral audios under audio
 - Effects base include all effects to be randomized from - Future AI pick by name and image prompt.
--  
+```
 C:\GITUHB\AI\VIDAI\CONTENT
 ├───audio
 ├───effect_base_videos
@@ -38,4 +38,6 @@ C:\GITUHB\AI\VIDAI\CONTENT
     │   └───movement
     │       └───with_effects
     ├───images_20250531_215247
+
     │   └───movement
+```
