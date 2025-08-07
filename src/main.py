@@ -1,14 +1,19 @@
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
 from video_creation.utils.flow_manager import continue_create_movement
 from video_creation.utils.image_fetcher import fetch_recent_images
 from video_creation.audio_utils import combine_audio_with_video
 from video_creation.images_to_movement_effect import ClipMaker, get_image_paths
 from video_creation.video_effect_composer import VideoComposer
 from video_creation.caption_text_flow import create_caption_text_clips
+
 DURATION = 3  # Default duration for clips
-path = fetch_recent_images(minutes=30)
+BASE_DIR = "PATH_TO_USER_DOWNLOAD"
+PATH_TO_DEFULT_AUDIO = "PATH_TO_MP3_VIRAL_AUDIO"
+
+path = fetch_recent_images(BASE_DIR, minutes=30)
 # If you want to fetch new images, uncomment the above line.
 # For now, use the latest workitem folder.
 # path = r"C:\Gituhb\AI\VidAi\content\workitems\images_20250531_215247"
@@ -34,7 +39,7 @@ video_effect_composer.randomize_effects(with_effects_path)
 
 # --- Audio Handling Example ---
 # Combine a viral sound with the first video with effect
-viral_audio = r"C:\Gituhb\AI\VidAi\content\audio\SLAVA FUNK!.mp3"
+viral_audio = PATH_TO_DEFULT_AUDIO
 first_video = None
 for f in os.listdir(with_effects_path):
     if f.endswith(".mp4"):

@@ -6,9 +6,9 @@ import time
 from datetime import datetime, timedelta
 from video_creation.utils.config_loader import VideoConfig
 
-def fetch_recent_images(minutes=180):
+def fetch_recent_images(base_dir, minutes=180):
     config = VideoConfig()
-    downloads_dir = r"C:\Users\mgabbay\Downloads"
+    downloads_dir = base_dir
     now = time.time()
     cutoff = now - (minutes * 60)
     # Get all image files downloaded in the last `minutes`
