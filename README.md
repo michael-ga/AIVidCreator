@@ -11,8 +11,8 @@ Video generation flow
     - [ ] Video description, viral title, tags [1 prompt]
     - [ ] images using image generation 
     - [ ] Optional - video for hook etc..
-    - [ ] voice over using elevenlabs API
-    - [ ] Transcript to voiceover to srt using wishper model
+    - [ ] voice-over using elevenlabs API
+    - [ ] [LOW] Transcript to voiceover to srt using wishper model
 - [ ] Detect voice over timing srt and plan times to compose scenes
 - [ ] Genreate template for text video to compose [Include styles]
 - [ ] Compose video with effects, sound, titles
