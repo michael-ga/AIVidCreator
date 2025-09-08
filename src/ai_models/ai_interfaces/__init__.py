@@ -48,3 +48,10 @@ __all__ = [
     # Exception exports
     "AIProviderError", "RateLimitError", "ModelNotFoundError", "InvalidRequestError", "AuthenticationError"
 ]
+
+# Image generation - Gemini
+try:
+    from .image.providers.gemini_image import get_gemini_image_generator
+    __all__.append("get_gemini_image_generator")
+except ImportError:
+    pass

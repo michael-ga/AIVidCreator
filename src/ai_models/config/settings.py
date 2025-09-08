@@ -22,6 +22,10 @@ DEFAULT_OPENAI_CHAT_MODEL = "gpt-4o-mini"
 DEFAULT_OPENAI_IMAGE_MODEL = "dall-e-3"
 DEFAULT_GEMINI_MODEL = "gemini-1.5-pro-latest"
 
+# Gemini Image Generation
+DEFAULT_GEMINI_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation"
+GEMINI_IMAGE_MAX_CONCURRENT = 5  # Conservative for free tier
+
 # Gemini model configurations
 GEMINI_VISION_MODELS_TO_TRY = ["gemini-1.5-pro-latest", "gemini-1.5-flash-latest"]
 GEMINI_TEXT_MODELS_TO_TRY = [
