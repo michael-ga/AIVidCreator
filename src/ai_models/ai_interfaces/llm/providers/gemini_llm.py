@@ -1,22 +1,22 @@
 """
-Gemini LLM implementation with your original prompt enhancement features.
+Clean async-first Gemini implementation - much simpler and better for production.
 """
 
 import google.generativeai as genai
 import logging
 import asyncio
 import random
-from typing import Any, Dict, List, Optional, Union, Iterator, Tuple
+from typing import Any, Dict, List, Optional, Union, AsyncIterator, Tuple
 from PIL import Image
 
 from ...models import ChatMessage, LLMResponse, LLMStreamChunk
-from ...exceptions import AIProviderError, AuthenticationError
-from ..protocols import LLMInterface
+from ...exceptions import AIProviderError, AuthenticationError, RateLimitError
+from ..protocols import LLMInterface, AsyncLLMInterface
 from config.settings import GOOGLE_API_KEY, GEMINI_TEXT_MODELS_TO_TRY, GEMINI_VISION_MODELS_TO_TRY
 
 logger = logging.getLogger(__name__)
 
-# Your original system prompts
+# Keep your original system prompts unchanged
 SYSTEM_PROMPT = """
 You are an expert at creating detailed prompts for AI image generation for {model_name} model. Your task is to improve the user's prompt to generate higher quality, more detailed images.
 
@@ -44,7 +44,7 @@ You are a master-level visual prompt engineer for {model_name} model — a state
 
 2. **Analyze Reference Image (if provided)**
    - Determine the subject, pose, facial identity (if applicable), texture details, environment, lighting setup, and focal depth.
-   - Note stylistic traits (e.g., "grainy texture," "soft backlight", "motion blur"), layout balance, and visual storytelling cues.
+   - Note stylistic traits (e.g., "grainy texture," "soft backlight," "motion blur"), layout balance, and visual storytelling cues.
 
 3. **Align with Desired Edits**
    - Parse the user's prompt to classify the intent:  
@@ -74,15 +74,18 @@ You are a master-level visual prompt engineer for {model_name} model — a state
 """
 
 class GeminiLLM:
-    """Gemini implementation of LLMInterface with specialized prompt enhancement"""
+    """Clean async-first Gemini implementation - simple and production-ready"""
     
-    def __init__(self):
-        """Initialize Gemini client with API key from config"""
+    def __init__(self, max_concurrent_requests: int = 10):
+        """Initialize with simple concurrency control"""
         api_key = GOOGLE_API_KEY
         if not api_key:
             raise AuthenticationError("GOOGLE_API_KEY not found in environment variables", "google")
 
         genai.configure(api_key=api_key)
+        
+        # Simple concurrency control - no complex ThreadPoolExecutor needed!
+        self._semaphore = asyncio.Semaphore(max_concurrent_requests)
 
         # Initialize available models
         self.available_vision_models = self._initialize_models(GEMINI_VISION_MODELS_TO_TRY, "vision")
@@ -92,7 +95,7 @@ class GeminiLLM:
             raise RuntimeError("No Gemini models could be initialized")
 
     def _initialize_models(self, model_names: List[str], model_type: str) -> List[Dict[str, Any]]:
-        """Initialize and validate Gemini models"""
+        """Initialize and validate Gemini models (unchanged)"""
         models_to_try = []
         
         for model_name in model_names:
@@ -107,15 +110,10 @@ class GeminiLLM:
             except Exception as e:
                 logger.warning(f"Could not initialize Gemini {model_type} model {model_name}. Error: {e}")
         
-        if not models_to_try:
-            logger.error(f"No {model_type} models could be initialized.")
-        else:
-            logger.info(f"Initialized {len(models_to_try)} {model_type} models.")
-            
         return models_to_try
 
     def _prepare_messages(self, messages: Union[str, List[ChatMessage]]) -> str:
-        """Convert messages to Gemini format"""
+        """Convert messages to Gemini format (unchanged)"""
         if isinstance(messages, str):
             return messages
         
@@ -131,7 +129,7 @@ class GeminiLLM:
         return "\n\n".join(formatted_parts)
 
     def _select_model_for_generation(self, model: Optional[str], needs_vision: bool = False) -> Dict[str, Any]:
-        """Select appropriate model for generation"""
+        """Select appropriate model for generation (unchanged)"""
         if model:
             all_models = self.available_vision_models if needs_vision else self.available_text_models
             for model_info in all_models:
@@ -145,7 +143,31 @@ class GeminiLLM:
         else:
             raise RuntimeError("No suitable models available")
 
-    def generate(
+    def _handle_gemini_error(self, error: Exception) -> None:
+        """Convert Gemini errors to our standard exceptions (unchanged)"""
+        error_str = str(error).lower()
+        
+        if "429" in str(error) or "quota" in error_str or "rate limit" in error_str:
+            retry_after = 60
+            import re
+            delay_match = re.search(r'retry_delay\s*{\s*seconds:\s*(\d+)', str(error))
+            if delay_match:
+                try:
+                    retry_after = int(delay_match.group(1))
+                except ValueError:
+                    pass
+            
+            raise RateLimitError(f"Gemini rate limit exceeded: {str(error)}", "google", retry_after)
+        elif "authentication" in error_str or "api key" in error_str:
+            raise AuthenticationError(f"Gemini authentication failed: {str(error)}", "google")
+        else:
+            raise AIProviderError(f"Gemini API error: {str(error)}", "google")
+
+    # ============================================================================
+    # Clean Async Interface - No More Event Loop Conflicts!
+    # ============================================================================
+
+    async def generate(
         self,
         messages: Union[str, List[ChatMessage]],
         model: Optional[str] = None,
@@ -153,34 +175,45 @@ class GeminiLLM:
         max_tokens: Optional[int] = None,
         **kwargs: Any,
     ) -> LLMResponse:
-        """Generate text response using Gemini models"""
+        """Clean async generate - no more nested asyncio.run() calls!"""
         
         # Check if this is a prompt enhancement request
         if any(key in kwargs for key in ['target_model', 'user_negative_prompt', 'wants_negative']):
-            return self._generate_enhanced_prompt(messages, model, **kwargs)
+            return await self._generate_enhanced_prompt(messages, model, **kwargs)
         
-        # Standard text generation
+        # Standard generation with simple concurrency control
+        async with self._semaphore:
+            return await self._generate_internal(messages, model, temperature, max_tokens, **kwargs)
+
+    async def _generate_internal(
+        self,
+        messages: Union[str, List[ChatMessage]],
+        model: Optional[str] = None,
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+        **kwargs: Any,
+    ) -> LLMResponse:
+        """Internal async generation using modern asyncio.to_thread"""
         prompt = self._prepare_messages(messages)
         needs_vision = 'image_path' in kwargs or 'image' in kwargs
         
         selected_model = self._select_model_for_generation(model, needs_vision)
         
         try:
-            generation_config = {
-                "temperature": temperature,
-            }
+            generation_config = {"temperature": temperature}
             if max_tokens:
                 generation_config["max_output_tokens"] = max_tokens
 
             if needs_vision and 'image_path' in kwargs:
-                image = Image.open(kwargs['image_path'])
-                if image.mode != 'RGB':
-                    image = image.convert('RGB')
+                # Load image asynchronously using modern asyncio.to_thread
+                image = await asyncio.to_thread(self._load_image, kwargs['image_path'])
                 content = [prompt, image]
             else:
                 content = prompt
 
-            response = selected_model["model"].generate_content(
+            # Call Gemini API using modern asyncio.to_thread - much cleaner!
+            response = await asyncio.to_thread(
+                selected_model["model"].generate_content,
                 content,
                 generation_config=generation_config
             )
@@ -210,22 +243,28 @@ class GeminiLLM:
             )
             
         except Exception as e:
-            raise AIProviderError(f"Gemini generation error: {str(e)}", "google") from e
+            self._handle_gemini_error(e)
 
-    def stream(
+    def _load_image(self, image_path: str) -> Image.Image:
+        """Load and prepare image - runs in thread via asyncio.to_thread"""
+        image = Image.open(image_path)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        return image
+
+    async def stream(
         self,
         messages: Union[str, List[ChatMessage]],
         model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
         **kwargs: Any,
-    ) -> Iterator[LLMStreamChunk]:
-        """Stream text response from Gemini"""
+    ) -> AsyncIterator[LLMStreamChunk]:
+        """Async streaming"""
         try:
-            # Generate complete response first (Gemini streaming can be complex)
-            response = self.generate(messages, model, temperature, max_tokens, **kwargs)
+            response = await self.generate(messages, model, temperature, max_tokens, **kwargs)
             
-            # Simulate streaming by breaking response into chunks
+            # Simulate streaming by chunking response
             text = response.text
             chunk_size = 50
             
@@ -252,54 +291,17 @@ class GeminiLLM:
                 raw_chunk=None
             )
 
-    def get_available_models(self) -> List[str]:
-        """Get list of available Gemini models"""
-        all_models = set()
-        for model_info in self.available_text_models + self.available_vision_models:
-            all_models.add(model_info["model_name"])
-        return sorted(list(all_models))
-
-    def get_model_info(self, model: Optional[str] = None) -> Dict[str, Any]:
-        """Get information about a specific model"""
-        if not self.available_text_models and not self.available_vision_models:
-            return {"error": "No models available"}
-        
-        default_model = None
-        if self.available_text_models:
-            default_model = self.available_text_models[0]["model_name"]
-        elif self.available_vision_models:
-            default_model = self.available_vision_models[0]["model_name"]
-            
-        target_model = model or default_model
-        
-        supports_vision = any(
-            target_model == m["model_name"] for m in self.available_vision_models
-        )
-        supports_text = any(
-            target_model == m["model_name"] for m in self.available_text_models
-        )
-        
-        return {
-            "name": target_model,
-            "provider": "Google Gemini",
-            "type": "generative_ai",
-            "supports_vision": supports_vision,
-            "supports_text": supports_text,
-            "context_window": 1000000 if "1.5" in target_model else 32000,
-            "specialized_features": ["prompt_enhancement", "multimodal_analysis"]
-        }
-
     # ============================================================================
-    # Your Original Prompt Enhancement Methods
+    # Clean Async Prompt Enhancement - No More Complexity!
     # ============================================================================
 
-    def _generate_enhanced_prompt(
+    async def _generate_enhanced_prompt(
         self, 
         messages: Union[str, List[ChatMessage]], 
         model: Optional[str], 
         **kwargs: Any
     ) -> LLMResponse:
-        """Handle prompt enhancement via the generate interface"""
+        """Handle prompt enhancement - now purely async"""
         user_prompt = self._prepare_messages(messages)
         
         target_model = kwargs.get('target_model', model)
@@ -308,24 +310,21 @@ class GeminiLLM:
         image_path = kwargs.get('image_path')
         
         try:
+            # Just await - no asyncio.run() needed!
             if image_path:
-                enhanced_text, used_model = asyncio.run(
-                    self.improve_prompt_multimodal(
-                        user_prompt, image_path, target_model, 
-                        user_negative_prompt, wants_negative
-                    )
+                enhanced_text, used_model = await self.improve_prompt_multimodal(
+                    user_prompt, image_path, target_model, 
+                    user_negative_prompt, wants_negative
                 )
             else:
-                enhanced_text, used_model = asyncio.run(
-                    self.enhance_prompt_text_only(
-                        user_prompt, target_model, 
-                        user_negative_prompt, wants_negative
-                    )
+                enhanced_text, used_model = await self.enhance_prompt_text_only(
+                    user_prompt, target_model, 
+                    user_negative_prompt, wants_negative
                 )
             
             return LLMResponse(
                 text=enhanced_text,
-                model=used_model,
+                model=used_model or "unknown",
                 finish_reason="stop",
                 metadata={
                     "provider": "Google Gemini",
@@ -352,12 +351,11 @@ class GeminiLLM:
         user_negative_prompt: Optional[str] = None, 
         wants_negative: bool = False
     ) -> Tuple[str, Optional[str]]:
-        """Enhance a text prompt without image analysis"""
+        """Clean async text enhancement using asyncio.to_thread"""
         if not self.available_text_models:
-            logger.error("No text models available. Returning original prompt.")
             return user_prompt, None
         
-        # Prepare negative prompt instructions
+        # Prepare instructions (unchanged)
         if wants_negative:
             if user_negative_prompt:
                 negative_instruction = f"7. IMPORTANT: The user provided this negative prompt: '{user_negative_prompt}'. Please enhance and improve this negative prompt as well to better avoid unwanted elements."
@@ -371,51 +369,31 @@ class GeminiLLM:
         
         models_to_try = self.available_text_models.copy()
         random.shuffle(models_to_try)
-        failed_models = set()
         
-        for model_info in models_to_try:
-            model_name = model_info["name"]
-            model_id = model_info["model_name"]
-            
-            if model_id in failed_models:
-                continue
-                
-            model = model_info["model"]
-            
-            formatted_system_prompt = SYSTEM_PROMPT.format(
-                model_name=target_model or "AI image generation",
-                negative_prompt_instruction=negative_instruction,
-                negative_format_instruction=format_instruction
-            )
-            
-            enhancement_instruction = f"""
-            {formatted_system_prompt}
-            
-            User's prompt: '{user_prompt}'
-            """
-            
-            logger.info(f"Attempting to enhance text prompt with {model_name} for target model: {target_model}...")
-     
-            try:
-                response = await asyncio.to_thread(
-                    model.generate_content,
-                    enhancement_instruction
-                )
-                
-                if response and response.text and response.text.strip():
-                    enhanced = response.text.strip()
-                    logger.info(f"Successfully enhanced text prompt with {model_name}.")
-                    return enhanced, model_info["model_name"]
-                else:
-                    logger.warning(f"{model_name} returned an empty response. Trying next model.")
-                    failed_models.add(model_id)
+        async with self._semaphore:
+            for model_info in models_to_try:
+                try:
+                    formatted_system_prompt = SYSTEM_PROMPT.format(
+                        model_name=target_model or "AI image generation",
+                        negative_prompt_instruction=negative_instruction,
+                        negative_format_instruction=format_instruction
+                    )
                     
-            except Exception as e:
-                logger.error(f"Failed to get response from {model_name}. Error: {e}. Trying next model...")
-                failed_models.add(model_id)
-                continue
+                    enhancement_instruction = f"{formatted_system_prompt}\n\nUser's prompt: '{user_prompt}'"
+                    
+                    # Use modern asyncio.to_thread - much cleaner than ThreadPoolExecutor!
+                    response = await asyncio.to_thread(
+                        model_info["model"].generate_content,
+                        enhancement_instruction
+                    )
+                    
+                    if response and response.text and response.text.strip():
+                        return response.text.strip(), model_info["model_name"]
+                        
+                except Exception as e:
+                    logger.warning(f"Model {model_info['name']} failed: {e}")
+                    continue
         
-        logger.critical("All text models failed. Returning the original prompt.")
         return user_prompt, None
 
     async def improve_prompt_multimodal(
@@ -426,12 +404,11 @@ class GeminiLLM:
         user_negative_prompt: Optional[str] = None, 
         wants_negative: bool = False
     ) -> Tuple[str, Optional[str]]:
-        """Improve a prompt using Gemini Vision models"""
+        """Clean async multimodal enhancement"""
         if not self.available_vision_models:
-            logger.error("No vision models available. Returning original prompt.")
             return original_prompt, None
         
-        # Prepare negative prompt instructions
+        # Prepare instructions (unchanged)
         if wants_negative:
             if user_negative_prompt:
                 negative_instruction = f"6. **IMPORTANT**: The user provided this negative prompt: '{user_negative_prompt}'. Please enhance and improve this negative prompt as well to better avoid unwanted elements."
@@ -444,59 +421,40 @@ class GeminiLLM:
             format_instruction = ""
         
         try:
-            image = Image.open(image_path)
-            if image.mode != 'RGB':
-                image = image.convert('RGB')
+            # Load image using asyncio.to_thread
+            image = await asyncio.to_thread(self._load_image, image_path)
             
             models_to_try = self.available_vision_models.copy()
             random.shuffle(models_to_try)
-            failed_models = set()
             
-            for model_info in models_to_try:
-                model_name = model_info["name"]
-                model_id = model_info["model_name"]
-                
-                if model_id in failed_models:
-                    continue
-                    
-                model = model_info["model"]
-                
-                formatted_system_prompt = IMAGE_SYSTEM_PROMPT.format(
-                    model_name=target_model or "AI image generation",
-                    negative_prompt_instruction=negative_instruction,
-                    negative_format_instruction=format_instruction
-                )
-                
-                prompt_parts = [
-                    f"{formatted_system_prompt}\n\nUser's prompt: '{original_prompt}'",
-                    image
-                ]
-                
-                logger.info(f"Attempting to improve prompt with {model_name} for target model: {target_model}...")
-                try:
-                    response = await asyncio.to_thread(
-                        model.generate_content,
-                        prompt_parts
-                    )
-                    
-                    if response and response.text and response.text.strip():
-                        improved_prompt = response.text.strip()
-                        logger.info(f"Successfully improved prompt with {model_name}.")
-                        return improved_prompt, model_info["model_name"]
-                    else:
-                        logger.warning(f"{model_name} returned an empty response. Trying next model.")
-                        failed_models.add(model_id)
+            async with self._semaphore:
+                for model_info in models_to_try:
+                    try:
+                        formatted_system_prompt = IMAGE_SYSTEM_PROMPT.format(
+                            model_name=target_model or "AI image generation",
+                            negative_prompt_instruction=negative_instruction,
+                            negative_format_instruction=format_instruction
+                        )
                         
-                except Exception as e:
-                    logger.error(f"Failed to get response from {model_name}. Error: {e}. Trying next model...")
-                    failed_models.add(model_id)
-                    continue
+                        prompt_parts = [f"{formatted_system_prompt}\n\nUser's prompt: '{original_prompt}'", image]
+                        
+                        # Use asyncio.to_thread for API call
+                        response = await asyncio.to_thread(
+                            model_info["model"].generate_content,
+                            prompt_parts
+                        )
+                        
+                        if response and response.text and response.text.strip():
+                            return response.text.strip(), model_info["model_name"]
+                            
+                    except Exception as e:
+                        logger.warning(f"Model {model_info['name']} failed: {e}")
+                        continue
             
-            logger.critical("All vision models failed. Returning the original prompt.")
             return original_prompt, None
                 
         except Exception as e:
-            logger.error(f"Error preparing image for multimodal enhancement: {e}")
+            logger.error(f"Error in multimodal enhancement: {e}")
             return original_prompt, None
 
     async def enhance_prompt(
@@ -507,14 +465,51 @@ class GeminiLLM:
         user_negative_prompt: Optional[str] = None, 
         wants_negative: bool = False
     ) -> Tuple[str, Optional[str]]:
-        """Main method to enhance prompts - your original method"""
+        """Main async prompt enhancement method (unchanged interface)"""
         if image_path:
             return await self.improve_prompt_multimodal(user_prompt, image_path, model_name, user_negative_prompt, wants_negative)
         else:
             return await self.enhance_prompt_text_only(user_prompt, model_name, user_negative_prompt, wants_negative)
 
+    # ============================================================================
+    # Utility Methods (unchanged)
+    # ============================================================================
+
+    def get_available_models(self) -> List[str]:
+        """Get list of available Gemini models"""
+        all_models = set()
+        for model_info in self.available_text_models + self.available_vision_models:
+            all_models.add(model_info["model_name"])
+        return sorted(list(all_models))
+
+    def get_model_info(self, model: Optional[str] = None) -> Dict[str, Any]:
+        """Get information about a specific model"""
+        if not self.available_text_models and not self.available_vision_models:
+            return {"error": "No models available"}
+        
+        default_model = None
+        if self.available_text_models:
+            default_model = self.available_text_models[0]["model_name"]
+        elif self.available_vision_models:
+            default_model = self.available_vision_models[0]["model_name"]
+            
+        target_model = model or default_model
+        
+        supports_vision = any(target_model == m["model_name"] for m in self.available_vision_models)
+        supports_text = any(target_model == m["model_name"] for m in self.available_text_models)
+        
+        return {
+            "name": target_model,
+            "provider": "Google Gemini",
+            "type": "generative_ai",
+            "supports_vision": supports_vision,
+            "supports_text": supports_text,
+            "context_window": 1000000 if "1.5" in target_model else 32000,
+            "specialized_features": ["prompt_enhancement", "multimodal_analysis"]
+        }
+
     def get_model_status(self) -> Dict[str, Any]:
-        """Get status information about available models - your original method"""
+        """Get status information about available models"""
         return {
             "vision_models_available": len(self.available_vision_models),
             "text_models_available": len(self.available_text_models),
@@ -522,15 +517,18 @@ class GeminiLLM:
             "text_models": [model["model_name"] for model in self.available_text_models]
         }
 
-# Global instance management (your original pattern)
-gemini_client = None
+# ============================================================================
+# Simple Global Instance Management
+# ============================================================================
+
+_gemini_client = None
 
 def get_gemini_client() -> GeminiLLM:
-    """Get or create Gemini client instance"""
-    global gemini_client
-    if gemini_client is None:
-        gemini_client = GeminiLLM()
-    return gemini_client
+    """Get or create async Gemini client instance"""
+    global _gemini_client
+    if _gemini_client is None:
+        _gemini_client = GeminiLLM()
+    return _gemini_client
 
 def get_model_status() -> Dict[str, Any]:
     """Get status of available Gemini models"""
