@@ -3,20 +3,111 @@ Content Generator - Clean E2E Content Creation
 
 A concise, directed class that generates complete video content JSON files
 with all required data (script, scenes, images, descriptions, titles).
+
+Uses LLMInterface protocol for flexible LLM provider selection.
 """
 
 import os
 import json
 import asyncio
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 
 from video_creation.utils.config_loader import VideoConfig
 from video_creation.ai.prompts import get_similiar_script, get_scenes, get_description_prompt
 from ai_models.config.settings import validate_environment
-from ai_models.ai_interfaces.models import ImageGenerationRequest
-from ai_models.ai_interfaces.llm.providers.gemini_llm import get_gemini_client
-from ai_models.ai_interfaces.image.providers.gemini_image import get_gemini_image_generator
+from ai_models.ai_interfaces.models import ImageGenerationRequest, LLMResponse
+from ai_models.ai_interfaces.llm.protocols import AsyncLLMInterface, LLMInterface
+from ai_models.ai_interfaces.image.protocols import ImageGeneratorInterface
+from helpers.text_utils import (
+    extract_text_from_response,
+    extract_json_from_text,
+    normalize_scenes_structure,
+    parse_titles_from_text,
+    clean_filename
+)
+
+
+def get_llm_provider(provider: Optional[str] = None) -> Union[AsyncLLMInterface, LLMInterface]:
+    """
+    Get LLM provider instance based on provider name.
+
+    Args:
+        provider: Provider name ('gemini', 'openai', 'copilot-cli', or None for auto-detect)
+
+    Returns:
+        LLM provider instance implementing LLMInterface or AsyncLLMInterface
+
+    Raises:
+        ValueError: If provider is not supported or not available
+        RuntimeError: If no provider can be initialized
+    """
+    env_status = validate_environment()
+
+    # Auto-detect if provider not specified
+    if provider is None:
+        if env_status["google"]:
+            provider = "gemini"
+        elif env_status["openai"]:
+            provider = "openai"
+        else:
+            # Try copilot-cli as fallback (doesn't need API keys)
+            try:
+                from ai_models.ai_interfaces.llm.providers.copilot_cli_llm import get_copilot_cli_client
+                return get_copilot_cli_client()
+            except Exception:
+                raise RuntimeError("No LLM provider available. Please set GOOGLE_API_KEY or OPENAI_API_KEY")
+
+    provider = provider.lower().strip()
+
+    if provider == "gemini":
+        if not env_status["google"]:
+            raise ValueError("Gemini provider requires GOOGLE_API_KEY. Please set it in your environment.")
+        from ai_models.ai_interfaces.llm.providers.gemini_llm import get_gemini_client
+        return get_gemini_client()
+
+    elif provider == "openai":
+        if not env_status["openai"]:
+            raise ValueError("OpenAI provider requires OPENAI_API_KEY. Please set it in your environment.")
+        from ai_models.ai_interfaces.llm.providers.openai_llm import OpenAILLM
+        return OpenAILLM()
+
+    elif provider in ("copilot", "copilot-cli"):
+        from ai_models.ai_interfaces.llm.providers.copilot_cli_llm import get_copilot_cli_client
+        return get_copilot_cli_client()
+
+    else:
+        raise ValueError(f"Unknown provider: {provider}. Supported: 'gemini', 'openai', 'copilot-cli'")
+
+
+def get_image_provider(provider: Optional[str] = None) -> Optional[ImageGeneratorInterface]:
+    """
+    Get image generator provider instance.
+
+    Args:
+        provider: Provider name ('gemini' or None for auto-detect)
+
+    Returns:
+        Image generator instance or None if not available
+    """
+    env_status = validate_environment()
+
+    if provider is None:
+        provider = "gemini" if env_status["google"] else None
+
+    if provider is None:
+        return None
+
+    provider = provider.lower().strip()
+
+    if provider == "gemini":
+        if not env_status["google"]:
+            return None
+        from ai_models.ai_interfaces.image.providers.gemini_image import get_gemini_image_generator
+        return get_gemini_image_generator()
+
+    else:
+        raise ValueError(f"Unknown image provider: {provider}. Supported: 'gemini'")
 
 
 class ContentGenerator:
@@ -29,112 +120,96 @@ class ContentGenerator:
     - Video description and titles
     - Generated images
     - Directory structure
+
+    Uses LLMInterface protocol for flexible LLM provider selection.
     """
 
-    def __init__(self, config_path: Optional[str] = None):
-        """Initialize the content generator"""
+    def __init__(
+        self,
+        config_path: Optional[str] = None,
+        llm_provider: Optional[Union[str, Any]] = None,
+        image_provider: Optional[str] = None
+    ):
+        """
+        Initialize the content generator.
+
+        Args:
+            config_path: Optional path to video config file
+            llm_provider: LLM provider name ('gemini', 'openai', 'copilot-cli'),
+                         LLMInterface instance, or None for auto-detect (defaults to gemini)
+            image_provider: Image provider name ('gemini') or None for auto-detect
+        """
         self.config = VideoConfig(config_path)
-        self.llm_client = None
-        self.image_generator = None
-        self._setup_clients()
 
-    def _setup_clients(self):
-        """Setup AI clients (Gemini LLM + Image Generator)"""
-        env_status = validate_environment()
-
-        if env_status["google"]:
-            try:
-                self.llm_client = get_gemini_client()
-                self.image_generator = get_gemini_image_generator()
-                print("✓ Content generator initialized with Gemini")
-            except Exception as e:
-                print(f"⚠ Failed to initialize Gemini: {e}")
+        # Setup LLM client
+        # Check if llm_provider is already an instance (has generate method)
+        if llm_provider is not None and hasattr(llm_provider, 'generate'):
+            self.llm_client = llm_provider
+            provider_name = getattr(llm_provider, 'provider_name', getattr(llm_provider, '__class__', type(llm_provider)).__name__)
+            print(f"✓ Using provided LLM client: {provider_name}")
         else:
-            print("⚠ GOOGLE_API_KEY not found. Please set it in your environment.")
+            try:
+                self.llm_client = get_llm_provider(llm_provider)
+                provider_name = llm_provider or "auto-detected"
+                print(f"✓ LLM provider initialized: {provider_name}")
+            except Exception as e:
+                print(f"⚠ Failed to initialize LLM provider: {e}")
+                self.llm_client = None
 
-    def _normalize_scenes(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Normalize scenes structure - unwrap nested scenes if present"""
-        if not isinstance(data, dict):
-            return data
+        # Setup image generator
+        try:
+            self.image_generator = get_image_provider(image_provider)
+            if self.image_generator:
+                print(f"✓ Image generator initialized: {image_provider or 'auto-detected'}")
+        except Exception as e:
+            print(f"⚠ Image generator not available: {e}")
+            self.image_generator = None
 
-        scenes_value = data.get('scenes')
-        if isinstance(scenes_value, dict) and isinstance(scenes_value.get('scenes'), list):
-            return {"scenes": scenes_value['scenes']}
+    async def _call_llm(self, prompt: str, model: Optional[str] = None, temperature: float = 0.7) -> LLMResponse:
+        """Call LLM with automatic sync/async handling"""
+        if not self.llm_client:
+            raise RuntimeError("LLM client not available")
 
-        return data
+        # Check if it's an async interface
+        if hasattr(self.llm_client, 'generate') and asyncio.iscoroutinefunction(self.llm_client.generate):
+            return await self.llm_client.generate(prompt, model=model, temperature=temperature)
+        else:
+            # Sync interface - run in executor
+            return await asyncio.to_thread(
+                self.llm_client.generate,
+                prompt,
+                model=model,
+                temperature=temperature
+            )
 
     async def _generate_script(self, example_script: str, subject: str) -> str:
         """Generate new script based on example and subject"""
-        if not self.llm_client:
-            raise RuntimeError("LLM client not available")
-
         prompt = get_similiar_script(example_script, subject)
-        response = await self.llm_client.generate(prompt, model=None, temperature=0.7)
+        response = await self._call_llm(prompt, model=None, temperature=0.7)
 
-        # Extract script from START/END markers if present
-        text = response.text.strip()
-        if "<START>" in text and "<END>" in text:
-            start_idx = text.find("<START>") + len("<START>")
-            end_idx = text.find("<END>")
-            text = text[start_idx:end_idx].strip()
-
-        return text
+        # Extract script from response using text utilities
+        return extract_text_from_response(response.text, use_markers=True, remove_markdown=False)
 
     async def _generate_scenes_data(self, script: str) -> Dict[str, Any]:
         """Generate scenes JSON from script"""
-        if not self.llm_client:
-            raise RuntimeError("LLM client not available")
-
         prompt = get_scenes(script)
-        response = await self.llm_client.generate(prompt, model=None, temperature=0.5)
+        response = await self._call_llm(prompt, model=None, temperature=0.5)
 
-        # Extract JSON from response
-        text = response.text.strip()
+        # Extract JSON from response using text utilities
+        parsed = extract_json_from_text(response.text)
 
-        # Try to extract from START/END markers
-        if "<START>" in text and "<END>" in text:
-            start_idx = text.find("<START>") + len("<START>")
-            end_idx = text.find("<END>")
-            text = text[start_idx:end_idx].strip()
+        if parsed and isinstance(parsed, dict):
+            return normalize_scenes_structure(parsed)
 
-        # Remove markdown code blocks if present
-        if text.startswith("```json"):
-            text = text[7:].strip()
-        if text.startswith("```"):
-            text = text[3:].strip()
-        if text.endswith("```"):
-            text = text[:-3].strip()
-
-        try:
-            parsed = json.loads(text)
-            return self._normalize_scenes(parsed) if isinstance(parsed, dict) else parsed
-        except json.JSONDecodeError:
-            # Fallback: try to find JSON object in text
-            start_idx = text.find('{')
-            if start_idx != -1:
-                try:
-                    # Simple extraction - find matching closing brace
-                    brace_count = 0
-                    for i in range(start_idx, len(text)):
-                        if text[i] == '{':
-                            brace_count += 1
-                        elif text[i] == '}':
-                            brace_count -= 1
-                            if brace_count == 0:
-                                parsed = json.loads(text[start_idx:i + 1])
-                                return self._normalize_scenes(parsed) if isinstance(parsed, dict) else parsed
-                except Exception:
-                    pass
-
-            # Last resort fallback
-            return {
-                "scenes": [{
-                    "id": 1,
-                    "duration": 3,
-                    "text": script[:100] + "...",
-                    "image_prompt": f"Visual representation of: {script[:50]}..."
-                }]
-            }
+        # Fallback if extraction fails
+        return {
+            "scenes": [{
+                "id": 1,
+                "duration": 3,
+                "text": script[:100] + "...",
+                "image_prompt": f"Visual representation of: {script[:50]}..."
+            }]
+        }
 
     async def _generate_metadata(self, script: str, subject: str) -> Dict[str, Any]:
         """Generate video description and titles"""
@@ -146,7 +221,7 @@ class ContentGenerator:
 
         # Generate description
         desc_prompt = get_description_prompt()
-        desc_response = await self.llm_client.generate(
+        desc_response = await self._call_llm(
             f"{desc_prompt}\n\nScript: {script}",
             model=None,
             temperature=0.7
@@ -160,17 +235,13 @@ Script: {script[:200]}...
 
 Return only the titles, one per line, without numbering."""
 
-        titles_response = await self.llm_client.generate(
+        titles_response = await self._call_llm(
             titles_prompt,
             model=None,
             temperature=0.4
         )
 
-        titles = [
-            title.strip()
-            for title in titles_response.text.strip().split('\n')
-            if title.strip()
-        ][:7]  # Limit to 7 titles
+        titles = parse_titles_from_text(titles_response.text, max_titles=7)
 
         return {
             "description": description,
@@ -244,8 +315,7 @@ Return only the titles, one per line, without numbering."""
 
         # Create output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_subject = "".join(c for c in subject if c.isalnum() or c in (' ', '-', '_')).strip()
-        safe_subject = safe_subject.replace(' ', '_')[:30]
+        safe_subject = clean_filename(subject, max_length=30)
 
         if output_subfolder:
             output_dir = os.path.join(
@@ -311,7 +381,9 @@ async def generate_content(
     subject: str,
     example_script: str,
     output_subfolder: Optional[str] = None,
-    config_path: Optional[str] = None
+    config_path: Optional[str] = None,
+    llm_provider: Optional[Union[str, Any]] = None,
+    image_provider: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Convenience function to generate content.
@@ -321,35 +393,41 @@ async def generate_content(
         example_script: Example script to base the new video on
         output_subfolder: Optional subfolder name for output
         config_path: Optional path to config file
+        llm_provider: LLM provider name or instance (defaults to auto-detect/gemini)
+        image_provider: Image provider name (defaults to auto-detect/gemini)
 
     Returns:
         Dictionary containing all generated content
     """
-    generator = ContentGenerator(config_path)
+    generator = ContentGenerator(
+        config_path=config_path,
+        llm_provider=llm_provider,
+        image_provider=image_provider
+    )
     return await generator.generate(subject, example_script, output_subfolder)
 
 
-# if __name__ == "__main__":
-#     # Example usage
-#     async def main():
-#         example_script = """What if responsibility wasn't a burden—but a superpower?
+if __name__ == "__main__":
+    # Example usage
+    async def main():
+        example_script = """What if responsibility wasn't a burden—but a superpower?
 
-# In this powerful visual short, we journey through what it truly means to be responsible—not just keeping promises, but leading with integrity, owning your role, and rising above blame."""
+In this powerful visual short, we journey through what it truly means to be responsible—not just keeping promises, but leading with integrity, owning your role, and rising above blame."""
 
-#         result = await generate_content(
-#             subject="courage",
-#             example_script=example_script,
-#             output_subfolder="test_content"
-#         )
+        result = await generate_content(
+            subject="courage",
+            example_script=example_script,
+            output_subfolder="test_content"
+        )
 
-#         print("\n" + "=" * 60)
-#         print("📊 GENERATION SUMMARY")
-#         print("=" * 60)
-#         print(f"Subject: {result['subject']}")
-#         print(f"Scenes: {len(result['scenes'].get('scenes', []))}")
-#         print(f"Images: {len(result['images'])}")
-#         print(f"Titles: {len(result['titles'])}")
-#         print(f"\nJSON file: {os.path.join(result['output_directory'], 'content.json')}")
+        print("\n" + "=" * 60)
+        print("📊 GENERATION SUMMARY")
+        print("=" * 60)
+        print(f"Subject: {result['subject']}")
+        print(f"Scenes: {len(result['scenes'].get('scenes', []))}")
+        print(f"Images: {len(result['images'])}")
+        print(f"Titles: {len(result['titles'])}")
+        print(f"\nJSON file: {os.path.join(result['output_directory'], 'content.json')}")
 
-#     asyncio.run(main())
+    asyncio.run(main())
 
