@@ -5,3 +5,6 @@ openai-whisper
 librosa
 soundfile
 ffmpeg-python
+python-dotenv
+elevenlabs
+python-dotenv
