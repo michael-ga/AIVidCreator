@@ -1,0 +1,201 @@
+{
+  "user_input": "courage",
+  "example_script": "What if responsibility wasn't a burden—but a superpower?\n\nIn this powerful visual short, we journey through what it truly means to be responsible—not just keeping promises, but leading with integrity, owning your role, and rising above blame. From lifting metaphorical weights in the gym to planting the seeds of impact, each scene explores one essential pillar of true responsibility: Initiative, Discipline, Self-Control, Influence, and more.\n\nThis is not just a value. It's a way of life for those who choose to lead from within.",
+  "output_directory": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112",
+  "timestamp": "20251103_225112",
+  "status": "processing",
+  "generated_script": "What if courage wasn't recklessness—but your greatest strength?\n\n   In this powerful visual short, we journey through what it truly means to be courageous—not just\n   facing fears, but standing for what's right, taking bold action despite uncertainty, and breaking\n    through barriers. From climbing towering mountains to speaking truth in silence, each scene\n   explores one essential pillar of true courage: Bravery, Conviction, Resilience, Heart, and more.\n\n   This is not just a value. It's a way of life for those who choose to rise above their fears.",
+  "scenes": {
+    "scenes": [
+      {
+        "id": 1,
+        "duration": 2,
+        "text": "What if courage wasn't recklessness—but your greatest strength? It's not the absence of fear, but the choice to act despite it.",
+        "image_prompt": "A silhouette of a person standing at a crossroads at dawn, with golden sunlight breaking through storm clouds, symbolizing hope and decision.",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_01_000.png",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_01_voiceover.mp3",
+        "movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_01_movement.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_01_synchronized.mp4",
+        "actual_duration": 7.84,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_01_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_01_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_01_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_01_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_01_zoom.mp4",
+        "effect_duration": 2.0775,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_01_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_01_final.mp4"
+      },
+      {
+        "id": 2,
+        "duration": 2,
+        "text": "Bravery. It's climbing the towering mountain you never thought you could reach. Every step upward is a defiance against your own limitations.",
+        "image_prompt": "A climber ascending a steep, misty mountain peak, muscles straining, determination in their eyes, with vast landscape below showing how far they've come.",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_02_000.png",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_02_voiceover.mp3",
+        "movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_02_movement.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_02_synchronized.mp4",
+        "actual_duration": 8.25,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_02_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_02_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_02_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_02_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_02_zoom.mp4",
+        "effect_duration": 2.1475,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_02_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_02_final.mp4"
+      },
+      {
+        "id": 3,
+        "duration": 2,
+        "text": "Conviction. It's speaking your truth in the silence, standing for what's right even when the world demands conformity.",
+        "image_prompt": "A person standing alone in a crowded room, speaking with conviction, their voice represented by visible ripples of light spreading outward, others turning to listen.",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_03_000.png",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_03_voiceover.mp3",
+        "movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_03_movement.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_03_synchronized.mp4",
+        "actual_duration": 6.3,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_03_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_03_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_03_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_03_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_03_zoom.mp4",
+        "effect_duration": 1.6325,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_03_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_03_final.mp4"
+      },
+      {
+        "id": 4,
+        "duration": 2,
+        "text": "Resilience. It's falling, breaking, facing failure—and choosing to rise again. Stronger. Wiser. Unstoppable.",
+        "image_prompt": "A person on their knees in a moment of struggle, then rising up with cracks of light forming around them, symbolizing transformation through adversity.",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_04_000.png",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_04_voiceover.mp3",
+        "movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_04_movement.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_04_synchronized.mp4",
+        "actual_duration": 6.95,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_04_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_04_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_04_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_04_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_04_zoom.mp4",
+        "effect_duration": 1.7375,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_04_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_04_final.mp4"
+      },
+      {
+        "id": 5,
+        "duration": 2,
+        "text": "Heart. It's the courage to be vulnerable, to love fiercely, to care deeply when it would be easier to close off.",
+        "image_prompt": "Two hands reaching toward each other in connection, warm golden light between them, a compassionate and intimate moment of human connection.",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_05_000.png",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_05_voiceover.mp3",
+        "movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_05_movement.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_05_synchronized.mp4",
+        "actual_duration": 6.82,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_05_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_05_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_05_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_05_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_05_zoom.mp4",
+        "effect_duration": 1.5675,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_05_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_05_final.mp4"
+      },
+      {
+        "id": 6,
+        "duration": 2,
+        "text": "Breakthrough. It's the moment you realize that all the barriers were illusions, constructed by fear. Now you shatter them.",
+        "image_prompt": "A person bursting through a glass barrier, shards of light exploding outward, their expression pure liberation and power, free on the other side.",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_06_voiceover.mp3",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_06_placeholder.png",
+        "actual_duration": 7.47,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_06_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_06_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_06_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_06_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_06_zoom.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_06_synchronized.mp4",
+        "effect_duration": 1.9275,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_06_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_06_final.mp4"
+      },
+      {
+        "id": 7,
+        "duration": 2,
+        "text": "This is not just a value. It's a way of life for those who choose to rise above their fears. Your courage is your legacy.",
+        "image_prompt": "A powerful silhouette standing on a mountain summit at sunset, arms raised triumphantly, with a vast horizon of infinite possibilities stretching before them.",
+        "audio_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\audio\\scene_07_voiceover.mp3",
+        "image_path": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\scene_07_placeholder.png",
+        "actual_duration": 7.0,
+        "movement_videos": [
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_07_zoom.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_07_shake.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_07_pan.mp4",
+          "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_07_rotation.mp4"
+        ],
+        "primary_movement_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\images\\movement\\scene_07_zoom.mp4",
+        "synchronized_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_07_synchronized.mp4",
+        "effect_duration": 1.75,
+        "combined_effects_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\combined_effects\\scene_07_combined_effects.mp4",
+        "final_scene_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_scenes\\scene_07_final.mp4"
+      }
+    ]
+  },
+  "description": "✓ List directory . (15 files)\n\nHere's the description for your courage video, styled after the responsibility template:\n\n---\n\n**What if courage wasn't recklessness—but your greatest strength?**\n\nIn this powerful visual short, we journey through what it truly means to be courageous—not just facing fears, but standing for what's right, taking bold action despite uncertainty, and breaking through barriers. From climbing towering mountains to speaking truth in silence, each scene explores one essential pillar of true courage: Bravery, Conviction, Resilience, Heart, and more.\n\nThis is not just a value. It's a way of life for those who choose to rise above their fears.\n\n👉 Watch till the end—and ask yourself: What barriers are YOU willing to break through?\n\n**Tags**\ncourage, personal growth, bravery, mindset, motivation, character development, emotional intelligence, integrity, take action, fear management, inspirational short, values education, hero mindset, self mastery, resilience, life lessons, animated motivation, self help, leadership values, be the change\n\n---\n\nWould you like me to save this to a file or make any adjustments?",
+  "titles": [
+    "Based on the courage script, here are 5 creative titles:",
+    "Courage Redefined: Strength Beyond Fear",
+    "The Silent Strength: What Courage Really Means",
+    "Standing Tall: The Power of True Courage",
+    "Fear's Opposite: Discovering Your Inner Strength",
+    "Courage Unleashed: The Strength You Already Have"
+  ],
+  "images": [],
+  "completed_timestamp": "20251110_013507",
+  "synchronized_videos": [
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_01_synchronized.mp4",
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_02_synchronized.mp4",
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_03_synchronized.mp4",
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_04_synchronized.mp4",
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_05_synchronized.mp4",
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_06_synchronized.mp4",
+    "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\synchronized_scenes\\scene_07_synchronized.mp4"
+  ],
+  "processing_results": {
+    "success": false,
+    "images_generated": 0,
+    "images_failed": 7,
+    "placeholders_created": 0,
+    "audios_generated": 7,
+    "movement_videos_per_scene": 0,
+    "combined_scene_videos": 0,
+    "final_video": null,
+    "errors": [],
+    "step_status": {
+      "load_flow": true,
+      "generate_images": false,
+      "create_audio": true,
+      "create_movement": false,
+      "add_audio": false,
+      "final_video": false
+    },
+    "retries_performed": 0
+  },
+  "final_scene_videos": [],
+  "final_complete_video": "C:\\Gituhb\\AI\\VidAi\\content\\workitems\\courage_video\\courage_20251103_225112\\final_complete_video.mp4",
+  "started_timestamp": "20251110_014003",
+  "last_updated": "2025-11-10T01:40:03.834657"
+}
