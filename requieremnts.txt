@@ -8,3 +8,5 @@ ffmpeg-python
 python-dotenv
 elevenlabs
 python-dotenv
+yt_dlp
+youtube-transcript-api
